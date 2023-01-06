@@ -1,9 +1,9 @@
 import React from 'react';
-import { useCreateUserWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
+import { useCreateUserWithEmailAndPassword, useSignInWithGoogle, useUpdateProfile } from 'react-firebase-hooks/auth';
 import auth from '../../firebase.init';
 import { useForm } from "react-hook-form";
 import Loading from '../Shared/Loading';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
     const [signInWithGoogle, googleUser, googleLoading, googleError] = useSignInWithGoogle(auth);
@@ -12,26 +12,34 @@ const SignUp = () => {
         signUpUser,
         signUpLoading,
         signUpError,
-      ] = useCreateUserWithEmailAndPassword(auth);
+    ] = useCreateUserWithEmailAndPassword(auth);
+
+    const [updateProfile, updating, updateError] = useUpdateProfile(auth);
+
+    const navigate = useNavigate();
+
     const { register, formState: { errors }, handleSubmit } = useForm();
 
     if (googleUser || signUpUser) {
         console.log(googleUser || signUpUser);
     }
 
-    if (googleLoading || signUpLoading) {
+    if (googleLoading || signUpLoading || updating) {
         return <Loading></Loading>;
     }
 
     let errorMessage;
 
-    if (googleError || signUpError) {
-        errorMessage = <p className='text-red-500 text-center py-2'>{googleError?.message || signUpError?.message}</p>
+    if (googleError || signUpError || updateError) {
+        errorMessage = <p className='text-red-500 text-center py-2'>{googleError?.message || signUpError?.message || updateError?.message}</p>
     }
 
-    const onSubmit = data => {
-        console.log(data);
-        createUserWithEmailAndPassword(data.email, data.password)
+    const onSubmit = async data => {
+        // console.log(data);
+        await createUserWithEmailAndPassword(data.email, data.password);
+        await updateProfile({ displayName: data.name });
+        alert('User Updated Done');
+        navigate('/appointment');
     };
     return (
         <div className='px-12 flex justify-center items-center h-screen'>
