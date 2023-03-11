@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import auth from '../../firebase.init';
 import { useForm } from "react-hook-form";
 import Loading from '../Shared/Loading';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import useToken from '../../Hooks/UseToken';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -19,10 +20,14 @@ const Login = () => {
 
     let from = location.state?.from?.pathname || "/";
 
-    if (googleUser || signInUser) {
-        // console.log(googleUser || signInUser);
-        navigate(from, { replace: true });
-    }
+    const [token] = useToken(googleUser || signInUser);
+
+    useEffect(() => {
+        if (token) {
+            // console.log(googleUser || signInUser);
+            navigate(from, { replace: true });
+        }
+    }, [token, from, navigate])
 
     if(googleLoading || signInLoading){
         return <Loading></Loading>;
@@ -40,7 +45,7 @@ const Login = () => {
     };
 
     return (
-        <div className='px-12 flex justify-center items-center h-screen'>
+        <div className='px-12 flex justify-center items-center h-screen h-auto'>
             <div class="card w-96 bg-base-100 shadow-xl">
                 <div class="card-body">
                     <h2 class="text-center text-2xl font-bold">Please Login</h2>
